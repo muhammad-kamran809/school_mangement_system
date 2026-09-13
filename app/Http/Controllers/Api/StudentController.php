@@ -1,0 +1,167 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Student;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class StudentController extends Controller
+{
+    public function index(): JsonResponse
+    {
+        $students = Student::latest()->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Students retrieved successfully.',
+            'data' => $students,
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                'unique:students,email',
+            ],
+
+            'phone' => ['nullable', 'string', 'max:30'],
+
+            'gender' => [
+                'required',
+                Rule::in(['male', 'female', 'other']),
+            ],
+
+            'date_of_birth' => [
+                'nullable',
+                'date',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+            ],
+
+            'guardian_name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'guardian_phone' => [
+                'required',
+                'string',
+                'max:30',
+            ],
+
+            'status' => [
+                'required',
+                Rule::in(['active', 'inactive']),
+            ],
+
+            'photo' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+        ]);
+
+        $student = Student::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Student created successfully.',
+            'data' => $student,
+        ], 201);
+    }
+
+    public function show(Student $student): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Student retrieved successfully.',
+            'data' => $student,
+        ]);
+    }
+
+    public function update(Request $request, Student $student): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::unique('students', 'email')
+                    ->ignore($student->id),
+            ],
+
+            'phone' => ['nullable', 'string', 'max:30'],
+
+            'gender' => [
+                'required',
+                Rule::in(['male', 'female', 'other']),
+            ],
+
+            'date_of_birth' => [
+                'nullable',
+                'date',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+            ],
+
+            'guardian_name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'guardian_phone' => [
+                'required',
+                'string',
+                'max:30',
+            ],
+
+            'status' => [
+                'required',
+                Rule::in(['active', 'inactive']),
+            ],
+
+            'photo' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+        ]);
+
+        $student->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Student updated successfully.',
+            'data' => $student->fresh(),
+        ]);
+    }
+
+    public function destroy(Student $student): JsonResponse
+    {
+        $student->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Student deleted successfully.',
+        ]);
+    }
+}
