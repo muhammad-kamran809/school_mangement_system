@@ -4,20 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Enrollment;
-use App\Models\StudentAttendance;
-use App\Models\Result;
-use App\Models\Fee;
-use App\Models\Payment;
-
 
 class Student extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'name',
+        'student_parents_id',
         'email',
         'phone',
         'gender',
@@ -56,5 +53,15 @@ class Student extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function studentParent(): BelongsTo
+    {
+        return $this->belongsTo(StudentParent::class);
     }
 }

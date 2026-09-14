@@ -5,11 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Enrollment;
-use App\Models\TeacherAssignment;
-use App\Models\Timetable;
-use App\Models\Exam;
-use App\Models\Fee;
 
 class AcademicYear extends Model
 {

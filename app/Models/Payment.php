@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
@@ -24,12 +25,12 @@ class Payment extends Model
         'payment_date' => 'date',
     ];
 
-    public function fee()
+    public function fee(): BelongsTo
     {
         return $this->belongsTo(Fee::class);
     }
 
-    public function student()
+    public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }

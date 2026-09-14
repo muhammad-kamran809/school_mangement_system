@@ -26,6 +26,13 @@ class StudentController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
 
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+                'unique:students,user_id',
+            ],
+
             'email' => [
                 'nullable',
                 'email',
@@ -96,6 +103,14 @@ class StudentController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+                Rule::unique('students', 'user_id')
+                    ->ignore($student->id),
+            ],
 
             'email' => [
                 'nullable',

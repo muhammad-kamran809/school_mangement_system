@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class StaffController extends Controller
 {
@@ -29,6 +30,12 @@ class StaffController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+                'unique:staff,user_id',
+            ],
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:30',
             'gender' => 'nullable|in:male,female,other',
@@ -69,6 +76,13 @@ class StaffController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+                Rule::unique('staff', 'user_id')
+                    ->ignore($staff->id),
+            ],
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:30',
             'gender' => 'nullable|in:male,female,other',

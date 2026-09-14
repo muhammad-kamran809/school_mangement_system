@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Teacher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TeacherController extends Controller
 {
@@ -29,6 +30,12 @@ class TeacherController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+                'unique:teachers,user_id',
+            ],
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:30',
             'gender' => 'nullable|in:male,female,other',
@@ -68,6 +75,13 @@ class TeacherController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+                Rule::unique('teachers', 'user_id')
+                    ->ignore($teacher->id),
+            ],
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:30',
             'gender' => 'nullable|in:male,female,other',
@@ -101,4 +115,4 @@ class TeacherController extends Controller
             'message' => 'Teacher deleted successfully.',
         ]);
     }
-}   
+}
