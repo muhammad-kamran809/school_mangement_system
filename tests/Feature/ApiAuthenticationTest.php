@@ -9,4 +9,13 @@ describe('API authentication', function () {
                 'message' => 'Unauthenticated.',
             ]);
     });
+
+    it('recognizes the nested my-children endpoint', function () {
+        $response = $this->get('/api/my-profile/my-children');
+
+        $response->assertUnauthorized()
+            ->assertJson([
+                'message' => 'Unauthenticated.',
+            ]);
+    });
 });

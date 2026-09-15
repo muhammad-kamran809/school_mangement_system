@@ -33,6 +33,12 @@ class StudentController extends Controller
                 'unique:students,user_id',
             ],
 
+            'student_parents_id' => [
+                'nullable',
+                'integer',
+                'exists:student_parents,id',
+            ],
+
             'email' => [
                 'nullable',
                 'email',
@@ -110,6 +116,12 @@ class StudentController extends Controller
                 'exists:users,id',
                 Rule::unique('students', 'user_id')
                     ->ignore($student->id),
+            ],
+
+            'student_parents_id' => [
+                'nullable',
+                'integer',
+                'exists:student_parents,id',
             ],
 
             'email' => [

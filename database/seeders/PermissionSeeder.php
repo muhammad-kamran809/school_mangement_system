@@ -142,27 +142,24 @@ class PermissionSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        $admin = Role::where('name', 'Admin')
-            ->where('guard_name', 'web')
-            ->firstOrFail();
+        $admin = Role::firstOrCreate([
+            'name' => 'Admin',
+            'guard_name' => 'web',
+        ]);
 
-        $admin->syncPermissions(
-            Permission::where('guard_name', 'web')->get()
-        );
+        $admin->syncPermissions(Permission::all());
 
         /*
         |--------------------------------------------------------------------------
         | Teacher
         |--------------------------------------------------------------------------
         */
-
-        $teacher = Role::where('name', 'Teacher')
-            ->where('guard_name', 'web')
-            ->firstOrFail();
+        $teacher = Role::firstOrCreate([
+            'name' => 'Teacher',
+            'guard_name' => 'web',
+        ]);
 
         $teacher->syncPermissions([
-            'dashboard.view',
-
             'students.view',
 
             'classes.view',
@@ -180,6 +177,8 @@ class PermissionSeeder extends Seeder
             'student_attendance.update',
 
             'teacher_attendance.view',
+            'teacher_attendance.create',
+            'teacher_attendance.update',
 
             'exams.view',
 
@@ -189,10 +188,6 @@ class PermissionSeeder extends Seeder
 
             'notices.view',
             'events.view',
-
-            'student_reports.view',
-            'attendance_reports.view',
-            'result_reports.view',
         ]);
 
         /*
@@ -201,14 +196,13 @@ class PermissionSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        $student = Role::where('name', 'Student')
-            ->where('guard_name', 'web')
-            ->firstOrFail();
+        $student = Role::firstOrCreate([
+            'name' => 'Student',
+            'guard_name' => 'web',
+        ]);
 
         $student->syncPermissions([
-            'dashboard.view',
-
-            'students.view',
+            // 'students.view',
 
             'classes.view',
             'sections.view',
@@ -229,10 +223,6 @@ class PermissionSeeder extends Seeder
 
             'notices.view',
             'events.view',
-
-            'student_reports.view',
-            'attendance_reports.view',
-            'result_reports.view',
         ]);
 
         /*
@@ -240,38 +230,32 @@ class PermissionSeeder extends Seeder
         | Parent
         |--------------------------------------------------------------------------
         */
-
-        $parent = Role::where('name', 'Parent')
-            ->where('guard_name', 'web')
-            ->firstOrFail();
+        $parent = Role::firstOrCreate([
+            'name' => 'Parent',
+            'guard_name' => 'web',
+        ]);
 
         $parent->syncPermissions([
-            'dashboard.view',
-
-            'students.view',
+            // 'students.view',
 
             'classes.view',
             'sections.view',
 
-            'enrollments.view',
+            // 'enrollments.view',
 
             'timetables.view',
 
-            'student_attendance.view',
+            // 'student_attendance.view',
 
             'exams.view',
 
-            'results.view',
+            // 'results.view',
 
-            'fees.view',
-            'payments.view',
+            // 'fees.view',
+            // 'payments.view',
 
             'notices.view',
             'events.view',
-
-            'student_reports.view',
-            'attendance_reports.view',
-            'result_reports.view',
         ]);
 
         /*
@@ -280,50 +264,36 @@ class PermissionSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        $staff = Role::where('name', 'Staff')
-            ->where('guard_name', 'web')
-            ->firstOrFail();
+        $staff = Role::firstOrCreate([
+            'name' => 'Staff',
+            'guard_name' => 'web',
+        ]);
 
         $staff->syncPermissions([
-            'dashboard.view',
-
             'students.view',
-            'students.create',
-            'students.update',
 
             'teachers.view',
 
             'staff.view',
-            'staff.create',
-            'staff.update',
 
-            'academic_years.view',
             'classes.view',
             'sections.view',
+
             'subjects.view',
 
             'enrollments.view',
-            'enrollments.create',
-            'enrollments.update',
+
+            'timetables.view',
 
             'student_attendance.view',
 
             'teacher_attendance.view',
 
             'fees.view',
-            'fees.create',
-            'fees.update',
-
             'payments.view',
-            'payments.create',
 
             'notices.view',
             'events.view',
-
-            'student_reports.view',
-            'attendance_reports.view',
-            'fee_reports.view',
-            'result_reports.view',
         ]);
     }
 }
