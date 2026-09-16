@@ -84,14 +84,26 @@ class SchoolClassController extends Controller
 
     public function destroy(SchoolClass $schoolClass): JsonResponse
     {
-        if ($schoolClass->sections()->exists()) {
+        $hasRelatedRecords = $schoolClass->sections()->exists()
+            || $schoolClass->enrollments()->exists()
+            || $schoolClass->teacherAssignments()->exists()
+            || $schoolClass->timetables()->exists()
+            || $schoolClass->studentAttendances()->exists()
+            || $schoolClass->exams()->exists();
+
+        if ($hasRelatedRecords) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete this class because it has sections.',
+                'message' => 'Cannot delete this class because it has related records.',
             ], 422);
         }
 
-        $schoolClass->delete();
+        if (! $schoolClass->delete()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The class could not be deleted.',
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,

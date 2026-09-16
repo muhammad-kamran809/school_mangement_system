@@ -227,22 +227,22 @@ Route::middleware('auth:sanctum')->group(function () {
         'store',
     ])->middleware('permission:classes.create');
 
-    Route::get('classes/{class}', [
+    Route::get('classes/{schoolClass}', [
         SchoolClassController::class,
         'show',
     ])->middleware('permission:classes.view');
 
-    Route::put('classes/{class}', [
+    Route::put('classes/{schoolClass}', [
         SchoolClassController::class,
         'update',
     ])->middleware('permission:classes.update');
 
-    Route::patch('classes/{class}', [
+    Route::patch('classes/{schoolClass}', [
         SchoolClassController::class,
         'update',
     ])->middleware('permission:classes.update');
 
-    Route::delete('classes/{class}', [
+    Route::delete('classes/{schoolClass}', [
         SchoolClassController::class,
         'destroy',
     ])->middleware('permission:classes.delete');
