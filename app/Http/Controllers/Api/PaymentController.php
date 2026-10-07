@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Fee;
 use App\Models\Payment;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Payment::with([
             'fee',
@@ -48,10 +49,12 @@ class PaymentController extends Controller
             );
         }
 
-        return response()->json([
-            'message' => 'Payments retrieved successfully.',
-            'data' => $query->latest('payment_date')->get()
-        ]);
+        return $this->paginateResponse(
+            $query->latest('payment_date'),
+            $request,
+            10,
+            'Payments retrieved successfully.'
+        );
     }
 
     public function store(Request $request)
@@ -111,7 +114,7 @@ class PaymentController extends Controller
 
         if ((int) $fee->student_id !== (int) $validated['student_id']) {
             return response()->json([
-                'message' => 'The selected fee does not belong to the selected student.'
+                'message' => 'The selected fee does not belong to the selected student.',
             ], 422);
         }
 
@@ -165,7 +168,7 @@ class PaymentController extends Controller
             'data' => $payment->load([
                 'fee',
                 'student',
-            ])
+            ]),
         ], 201);
     }
 
@@ -176,7 +179,7 @@ class PaymentController extends Controller
             'data' => $payment->load([
                 'fee',
                 'student',
-            ])
+            ]),
         ]);
     }
 
@@ -248,7 +251,7 @@ class PaymentController extends Controller
 
         if ((int) $fee->student_id !== (int) $studentId) {
             return response()->json([
-                'message' => 'The selected fee does not belong to the selected student.'
+                'message' => 'The selected fee does not belong to the selected student.',
             ], 422);
         }
 
@@ -312,7 +315,7 @@ class PaymentController extends Controller
             'data' => $payment->load([
                 'fee',
                 'student',
-            ])
+            ]),
         ]);
     }
 
@@ -348,7 +351,7 @@ class PaymentController extends Controller
         }
 
         return response()->json([
-            'message' => 'Payment deleted successfully.'
+            'message' => 'Payment deleted successfully.',
         ]);
     }
 }

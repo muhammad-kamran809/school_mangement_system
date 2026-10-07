@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Exam;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ExamController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Exam::with([
             'academicYear',
@@ -36,8 +37,19 @@ class ExamController extends Controller
             );
         }
 
-        return response()->json(
-            $query->latest()->get()
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('term', 'like', "%{$search}%");
+            });
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Exams retrieved successfully.'
         );
     }
 
@@ -93,7 +105,7 @@ class ExamController extends Controller
 
         if ($alreadyExists) {
             return response()->json([
-                'message' => 'This exam already exists for the selected academic year and class.'
+                'message' => 'This exam already exists for the selected academic year and class.',
             ], 422);
         }
 
@@ -175,7 +187,7 @@ class ExamController extends Controller
 
         if ($alreadyExists) {
             return response()->json([
-                'message' => 'This exam already exists for the selected academic year and class.'
+                'message' => 'This exam already exists for the selected academic year and class.',
             ], 422);
         }
 
@@ -193,14 +205,14 @@ class ExamController extends Controller
     {
         if ($exam->results()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete this exam because results already exist for it.'
+                'message' => 'Cannot delete this exam because results already exist for it.',
             ], 422);
         }
 
         $exam->delete();
 
         return response()->json([
-            'message' => 'Exam deleted successfully.'
+            'message' => 'Exam deleted successfully.',
         ]);
     }
 }

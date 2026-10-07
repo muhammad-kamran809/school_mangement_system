@@ -678,7 +678,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('reports/students', [
     ReportController::class,
-    'index',
+    'students',
 ])
     ->middleware([
         'auth:sanctum',
@@ -687,7 +687,7 @@ Route::get('reports/students', [
 
 Route::get('reports/attendance', [
     ReportController::class,
-    'index',
+    'attendance',
 ])
     ->middleware([
         'auth:sanctum',
@@ -696,11 +696,20 @@ Route::get('reports/attendance', [
 
 Route::get('reports/results', [
     ReportController::class,
-    'index',
+    'results',
 ])
     ->middleware([
         'auth:sanctum',
         'permission:result_reports.view',
+    ]);
+
+Route::get('reports/fees', [
+    ReportController::class,
+    'fees',
+])
+    ->middleware([
+        'auth:sanctum',
+        'permission:fee_reports.view',
     ]);
 
 // school settings api

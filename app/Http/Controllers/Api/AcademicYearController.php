@@ -10,14 +10,25 @@ use Illuminate\Validation\Rule;
 
 class AcademicYearController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $academicYears = AcademicYear::latest()->get();
+        $query = AcademicYear::query();
 
-        return response()->json([
-            'success' => true,
-            'data' => $academicYears,
-        ]);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Academic years retrieved successfully.'
+        );
     }
 
     public function store(Request $request): JsonResponse

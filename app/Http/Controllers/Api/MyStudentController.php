@@ -7,11 +7,12 @@ use App\Models\Fee;
 use App\Models\Payment;
 use App\Models\Result;
 use App\Models\StudentAttendance;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MyStudentController extends Controller
 {
-    public function attendance(Request $request)
+    public function attendance(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -21,21 +22,22 @@ class MyStudentController extends Controller
             ], 404);
         }
 
-        $attendance = StudentAttendance::with([
+        $query = StudentAttendance::with([
             'schoolClass',
             'section',
         ])
             ->where('student_id', $user->student->id)
-            ->latest('date')
-            ->get();
+            ->latest('date');
 
-        return response()->json([
-            'message' => 'Attendance retrieved successfully.',
-            'data' => $attendance,
-        ]);
+        return $this->paginateResponse(
+            $query,
+            $request,
+            10,
+            'Attendance retrieved successfully.'
+        );
     }
 
-    public function results(Request $request)
+    public function results(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -45,20 +47,22 @@ class MyStudentController extends Controller
             ], 404);
         }
 
-        $results = Result::with([
+        $query = Result::with([
             'exam',
             'subject',
         ])
             ->where('student_id', $user->student->id)
-            ->get();
+            ->latest();
 
-        return response()->json([
-            'message' => 'Results retrieved successfully.',
-            'data' => $results,
-        ]);
+        return $this->paginateResponse(
+            $query,
+            $request,
+            10,
+            'Results retrieved successfully.'
+        );
     }
 
-    public function fees(Request $request)
+    public function fees(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -68,17 +72,18 @@ class MyStudentController extends Controller
             ], 404);
         }
 
-        $fees = Fee::where('student_id', $user->student->id)
-            ->latest()
-            ->get();
+        $query = Fee::where('student_id', $user->student->id)
+            ->latest();
 
-        return response()->json([
-            'message' => 'Fees retrieved successfully.',
-            'data' => $fees,
-        ]);
+        return $this->paginateResponse(
+            $query,
+            $request,
+            10,
+            'Fees retrieved successfully.'
+        );
     }
 
-    public function payments(Request $request)
+    public function payments(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -88,13 +93,14 @@ class MyStudentController extends Controller
             ], 404);
         }
 
-        $payments = Payment::where('student_id', $user->student->id)
-            ->latest('payment_date')
-            ->get();
+        $query = Payment::where('student_id', $user->student->id)
+            ->latest('payment_date');
 
-        return response()->json([
-            'message' => 'Payments retrieved successfully.',
-            'data' => $payments,
-        ]);
+        return $this->paginateResponse(
+            $query,
+            $request,
+            10,
+            'Payments retrieved successfully.'
+        );
     }
 }

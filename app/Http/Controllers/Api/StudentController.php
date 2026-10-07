@@ -10,15 +10,29 @@ use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $students = Student::latest()->get();
+        $query = Student::query();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Students retrieved successfully.',
-            'data' => $students,
-        ]);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Students retrieved successfully.'
+        );
     }
 
     public function store(Request $request): JsonResponse

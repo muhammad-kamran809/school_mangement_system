@@ -8,23 +8,41 @@ use App\Models\Student;
 use App\Models\StudentParent;
 use App\Models\Teacher;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        return response()->json([
-            'data' => User::with([
-                'teacher',
-                'student',
-                'staff',
-                'studentParent',
-                'roles'
-            ])->get()
+        $query = User::with([
+            'teacher',
+            'student',
+            'staff',
+            'studentParent',
+            'roles',
         ]);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('role')) {
+            $query->role($request->role);
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Users retrieved successfully.'
+        );
     }
 
     public function store(Request $request)
@@ -205,8 +223,8 @@ class UserController extends Controller
                 'student',
                 'staff',
                 'studentParent',
-                'roles'
-            ])
+                'roles',
+            ]),
         ]);
     }
 
@@ -214,7 +232,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'email' => 'sometimes|required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
@@ -226,7 +244,7 @@ class UserController extends Controller
             $user->email = $validated['email'];
         }
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
 
@@ -243,7 +261,7 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json([
-            'message' => 'User deleted successfully.'
+            'message' => 'User deleted successfully.',
         ]);
     }
 }

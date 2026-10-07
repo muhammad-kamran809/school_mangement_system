@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notice;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class NoticeController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Notice::query();
 
@@ -39,12 +40,12 @@ class NoticeController extends Controller
                 $q->where(
                     'title',
                     'like',
-                    '%' . $search . '%'
+                    '%'.$search.'%'
                 )
                     ->orWhere(
                         'description',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     );
             });
         }
@@ -71,14 +72,12 @@ class NoticeController extends Controller
             );
         }
 
-        $notices = $query
-            ->latest('publish_date')
-            ->get();
-
-        return response()->json([
-            'message' => 'Notices retrieved successfully.',
-            'data' => $notices,
-        ]);
+        return $this->paginateResponse(
+            $query->latest('publish_date'),
+            $request,
+            10,
+            'Notices retrieved successfully.'
+        );
     }
 
     public function store(Request $request)
@@ -181,11 +180,11 @@ class NoticeController extends Controller
             ?? $notice->publish_date;
 
         if (
-            !empty($validated['expiry_date']) &&
+            ! empty($validated['expiry_date']) &&
             $validated['expiry_date'] < $publishDate
         ) {
             return response()->json([
-                'message' => 'Expiry date must be on or after the publish date.'
+                'message' => 'Expiry date must be on or after the publish date.',
             ], 422);
         }
 

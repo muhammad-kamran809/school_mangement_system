@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
-use App\Models\StudentAttendance;
 use App\Models\Fee;
 use App\Models\Result;
+use App\Models\Student;
+use App\Models\StudentAttendance;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
@@ -40,35 +40,32 @@ class ReportController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $search . '%'
+                    '%'.$search.'%'
                 )
                     ->orWhere(
                         'email',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     )
                     ->orWhere(
                         'phone',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     )
                     ->orWhere(
                         'guardian_name',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     );
             });
         }
 
-        $students = $query
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'message' => 'Student report retrieved successfully.',
-            'total_students' => $students->count(),
-            'data' => $students,
-        ]);
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Student report retrieved successfully.'
+        );
     }
 
     /*
@@ -130,41 +127,33 @@ class ReportController extends Controller
             );
         }
 
-        $attendance = $query
-            ->latest('date')
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Attendance Summary
-        |--------------------------------------------------------------------------
-        */
-
         $summary = [
-            'total_records' => $attendance->count(),
+            'total_records' => (clone $query)->count(),
 
-            'present' => $attendance
+            'present' => (clone $query)
                 ->where('status', 'present')
                 ->count(),
 
-            'absent' => $attendance
+            'absent' => (clone $query)
                 ->where('status', 'absent')
                 ->count(),
 
-            'late' => $attendance
+            'late' => (clone $query)
                 ->where('status', 'late')
                 ->count(),
 
-            'leave' => $attendance
+            'leave' => (clone $query)
                 ->where('status', 'leave')
                 ->count(),
         ];
 
-        return response()->json([
-            'message' => 'Attendance report retrieved successfully.',
-            'summary' => $summary,
-            'data' => $attendance,
-        ]);
+        return $this->paginateResponse(
+            $query->latest('date'),
+            $request,
+            10,
+            'Attendance report retrieved successfully.',
+            ['summary' => $summary]
+        );
     }
 
     /*
@@ -305,11 +294,13 @@ class ReportController extends Controller
             'total_records' => $report->count(),
         ];
 
-        return response()->json([
-            'message' => 'Fee report retrieved successfully.',
-            'summary' => $summary,
-            'data' => $report,
-        ]);
+        return $this->paginateResponse(
+            $report,
+            $request,
+            10,
+            'Fee report retrieved successfully.',
+            ['summary' => $summary]
+        );
     }
 
     /*
@@ -348,45 +339,25 @@ class ReportController extends Controller
             );
         }
 
-        $results = $query
-            ->latest()
-            ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Result Summary
-        |--------------------------------------------------------------------------
-        */
-
-        $totalMarks = $results->sum(
-            'total_marks'
-        );
-
-        $obtainedMarks = $results->sum(
-            'marks'
-        );
-
+        $totalMarks = (float) (clone $query)->sum('total_marks');
+        $obtainedMarks = (float) (clone $query)->sum('marks');
         $percentage = $totalMarks > 0
-            ? round(
-                ($obtainedMarks / $totalMarks) * 100,
-                2
-            )
+            ? round(($obtainedMarks / $totalMarks) * 100, 2)
             : 0;
 
-        return response()->json([
-            'message' => 'Result report retrieved successfully.',
+        $summary = [
+            'total_subjects' => (clone $query)->count(),
+            'total_marks' => $totalMarks,
+            'obtained_marks' => $obtainedMarks,
+            'percentage' => $percentage,
+        ];
 
-            'summary' => [
-                'total_subjects' => $results->count(),
-
-                'total_marks' => $totalMarks,
-
-                'obtained_marks' => $obtainedMarks,
-
-                'percentage' => $percentage,
-            ],
-
-            'data' => $results,
-        ]);
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Result report retrieved successfully.',
+            ['summary' => $summary]
+        );
     }
 }

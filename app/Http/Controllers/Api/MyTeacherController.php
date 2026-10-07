@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class MyTeacherController extends Controller
 {
-    public function assignments(Request $request)
+    public function assignments(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -19,7 +19,7 @@ class MyTeacherController extends Controller
             ], 404);
         }
 
-        $assignments = $user->teacher
+        $query = $user->teacher
             ->assignments()
             ->with([
                 'academicYear',
@@ -27,12 +27,14 @@ class MyTeacherController extends Controller
                 'section',
                 'subject',
             ])
-            ->get();
+            ->latest();
 
-        return response()->json([
-            'message' => 'Teacher assignments retrieved successfully.',
-            'data' => $assignments,
-        ]);
+        return $this->paginateResponse(
+            $query,
+            $request,
+            10,
+            'Teacher assignments retrieved successfully.'
+        );
     }
 
     public function students(Request $request): JsonResponse
@@ -52,23 +54,32 @@ class MyTeacherController extends Controller
                 'section_id',
             ]);
 
-        $students = $assignments->isEmpty()
-            ? collect()
-            : Student::whereHas('enrollments', function ($query) use ($assignments) {
-                $query->where(function ($q) use ($assignments) {
-                    foreach ($assignments as $assignment) {
-                        $q->orWhere(function ($subQuery) use ($assignment) {
-                            $subQuery
-                                ->where('class_id', $assignment->class_id)
-                                ->where('section_id', $assignment->section_id);
-                        });
-                    }
-                });
-            })->get();
+        if ($assignments->isEmpty()) {
+            return $this->paginateResponse(
+                collect(),
+                $request,
+                10,
+                'Assigned students retrieved successfully.'
+            );
+        }
 
-        return response()->json([
-            'message' => 'Assigned students retrieved successfully.',
-            'data' => $students,
-        ]);
+        $query = Student::whereHas('enrollments', function ($query) use ($assignments) {
+            $query->where(function ($q) use ($assignments) {
+                foreach ($assignments as $assignment) {
+                    $q->orWhere(function ($subQuery) use ($assignment) {
+                        $subQuery
+                            ->where('class_id', $assignment->class_id)
+                            ->where('section_id', $assignment->section_id);
+                    });
+                }
+            });
+        })->latest();
+
+        return $this->paginateResponse(
+            $query,
+            $request,
+            10,
+            'Assigned students retrieved successfully.'
+        );
     }
 }

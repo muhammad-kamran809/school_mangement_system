@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Enrollment;
 use App\Models\Section;
 use App\Models\StudentAttendance;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class StudentAttendanceController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = StudentAttendance::with([
             'student',
@@ -37,8 +39,11 @@ class StudentAttendanceController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json(
-            $query->latest('date')->get()
+        return $this->paginateResponse(
+            $query->latest('date'),
+            $request,
+            10,
+            'Student attendance retrieved successfully.'
         );
     }
 
@@ -81,14 +86,14 @@ class StudentAttendanceController extends Controller
             ->where('class_id', $validated['class_id'])
             ->exists();
 
-        if (!$sectionBelongsToClass) {
+        if (! $sectionBelongsToClass) {
             return response()->json([
-                'message' => 'The selected section does not belong to the selected class.'
+                'message' => 'The selected section does not belong to the selected class.',
             ], 422);
         }
 
         // Make sure student is enrolled in the selected class and section
-        $studentBelongsToClassSection = \App\Models\Enrollment::where(
+        $studentBelongsToClassSection = Enrollment::where(
             'student_id',
             $validated['student_id']
         )
@@ -96,9 +101,9 @@ class StudentAttendanceController extends Controller
             ->where('section_id', $validated['section_id'])
             ->exists();
 
-        if (!$studentBelongsToClassSection) {
+        if (! $studentBelongsToClassSection) {
             return response()->json([
-                'message' => 'The selected student is not enrolled in the selected class and section.'
+                'message' => 'The selected student is not enrolled in the selected class and section.',
             ], 422);
         }
 
@@ -112,7 +117,7 @@ class StudentAttendanceController extends Controller
 
         if ($alreadyExists) {
             return response()->json([
-                'message' => 'Attendance for this student already exists for the selected date.'
+                'message' => 'Attendance for this student already exists for the selected date.',
             ], 422);
         }
 
@@ -180,14 +185,14 @@ class StudentAttendanceController extends Controller
             ->where('class_id', $validated['class_id'])
             ->exists();
 
-        if (!$sectionBelongsToClass) {
+        if (! $sectionBelongsToClass) {
             return response()->json([
-                'message' => 'The selected section does not belong to the selected class.'
+                'message' => 'The selected section does not belong to the selected class.',
             ], 422);
         }
 
         // Make sure student belongs to selected class and section
-        $studentBelongsToClassSection = \App\Models\Enrollment::where(
+        $studentBelongsToClassSection = Enrollment::where(
             'student_id',
             $validated['student_id']
         )
@@ -195,9 +200,9 @@ class StudentAttendanceController extends Controller
             ->where('section_id', $validated['section_id'])
             ->exists();
 
-        if (!$studentBelongsToClassSection) {
+        if (! $studentBelongsToClassSection) {
             return response()->json([
-                'message' => 'The selected student is not enrolled in the selected class and section.'
+                'message' => 'The selected student is not enrolled in the selected class and section.',
             ], 422);
         }
 
@@ -212,7 +217,7 @@ class StudentAttendanceController extends Controller
 
         if ($alreadyExists) {
             return response()->json([
-                'message' => 'Attendance for this student already exists for the selected date.'
+                'message' => 'Attendance for this student already exists for the selected date.',
             ], 422);
         }
 
@@ -232,7 +237,7 @@ class StudentAttendanceController extends Controller
         $studentAttendance->delete();
 
         return response()->json([
-            'message' => 'Student attendance deleted successfully.'
+            'message' => 'Student attendance deleted successfully.',
         ]);
     }
 }

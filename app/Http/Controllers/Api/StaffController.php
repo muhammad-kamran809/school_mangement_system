@@ -13,14 +13,26 @@ class StaffController extends Controller
     /**
      * Display a listing of staff.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $staff = Staff::latest()->get();
+        $query = Staff::query();
 
-        return response()->json([
-            'success' => true,
-            'data' => $staff,
-        ]);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('designation', 'like', "%{$search}%");
+            });
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Staff retrieved successfully.'
+        );
     }
 
     /**

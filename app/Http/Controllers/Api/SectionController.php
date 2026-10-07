@@ -18,12 +18,21 @@ class SectionController extends Controller
             $query->where('class_id', $request->class_id);
         }
 
-        $sections = $query->latest()->get();
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-        return response()->json([
-            'success' => true,
-            'data' => $sections,
-        ]);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Sections retrieved successfully.'
+        );
     }
 
     public function store(Request $request): JsonResponse

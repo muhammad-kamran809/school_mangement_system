@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
+use App\Models\Section;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -39,13 +40,12 @@ class EnrollmentController extends Controller
             $query->where('status', $request->status);
         }
 
-        $enrollments = $query->latest()->get();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Enrollments retrieved successfully.',
-            'data' => $enrollments,
-        ]);
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Enrollments retrieved successfully.'
+        );
     }
 
     public function store(Request $request): JsonResponse
@@ -88,7 +88,7 @@ class EnrollmentController extends Controller
             ],
         ]);
 
-        $sectionBelongsToClass = \App\Models\Section::where('id', $validated['section_id'])
+        $sectionBelongsToClass = Section::where('id', $validated['section_id'])
             ->where('class_id', $validated['class_id'])
             ->exists();
 
@@ -182,7 +182,7 @@ class EnrollmentController extends Controller
             ],
         ]);
 
-        $sectionBelongsToClass = \App\Models\Section::where('id', $validated['section_id'])
+        $sectionBelongsToClass = Section::where('id', $validated['section_id'])
             ->where('class_id', $validated['class_id'])
             ->exists();
 

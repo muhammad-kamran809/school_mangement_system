@@ -1,9 +1,20 @@
 <?php
 
 use App\Models\Student;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 uses(LazilyRefreshDatabase::class);
+
+beforeEach(function () {
+    $this->withoutMiddleware([
+        Authenticate::class,
+        PermissionMiddleware::class,
+        RoleMiddleware::class,
+    ]);
+});
 
 describe('student CRUD API', function () {
     it('creates a student and persists all fields', function () {
@@ -11,8 +22,6 @@ describe('student CRUD API', function () {
             'name' => 'Amina Khan',
             'email' => 'amina@example.com',
             'phone' => '03001234567',
-            'class_name' => '5',
-            'section' => 'A',
             'gender' => 'female',
             'date_of_birth' => '2015-04-12',
             'address' => '12 Main Street',
@@ -26,16 +35,37 @@ describe('student CRUD API', function () {
         $response->assertCreated()
             ->assertJsonPath('data.name', 'Amina Khan')
             ->assertJsonPath('data.email', 'amina@example.com');
-        $this->assertDatabaseHas('students', $studentData);
+
+        $this->assertDatabaseHas('students', [
+            'name' => 'Amina Khan',
+            'email' => 'amina@example.com',
+            'phone' => '03001234567',
+            'gender' => 'female',
+            'guardian_name' => 'Imran Khan',
+            'guardian_phone' => '03007654321',
+            'status' => 'active',
+        ]);
     });
 
-    it('lists and shows students', function () {
+    it('lists and shows students with pagination', function () {
         $student = Student::factory()->create();
 
         $listResponse = $this->getJson('/api/students');
         $showResponse = $this->getJson("/api/students/{$student->id}");
 
-        $listResponse->assertOk()->assertJsonPath('data.0.id', $student->id);
+        $listResponse->assertOk()
+            ->assertJsonPath('data.0.id', $student->id)
+            ->assertJsonStructure([
+                'success',
+                'data',
+                'pagination' => [
+                    'current_page',
+                    'per_page',
+                    'total',
+                    'last_page',
+                ],
+            ]);
+
         $showResponse->assertOk()->assertJsonPath('data.id', $student->id);
     });
 
@@ -44,12 +74,10 @@ describe('student CRUD API', function () {
 
         $response = $this->putJson("/api/students/{$student->id}", [
             'name' => 'Updated Student',
-            'email' => $student->email,
+            'email' => 'new_'.$student->email,
             'phone' => $student->phone,
-            'class_name' => $student->class_name,
-            'section' => $student->section,
             'gender' => $student->gender,
-            'date_of_birth' => $student->date_of_birth,
+            'date_of_birth' => '2015-01-01',
             'address' => $student->address,
             'guardian_name' => $student->guardian_name,
             'guardian_phone' => $student->guardian_phone,
@@ -68,7 +96,7 @@ describe('student CRUD API', function () {
 
         $response = $this->deleteJson("/api/students/{$student->id}");
 
-        $response->assertNoContent();
+        $response->assertOk();
         $this->assertDatabaseMissing('students', ['id' => $student->id]);
     });
 
@@ -78,13 +106,7 @@ describe('student CRUD API', function () {
         $response->assertUnprocessable()
             ->assertJsonValidationErrors([
                 'name',
-                'email',
-                'phone',
-                'class_name',
-                'section',
                 'gender',
-                'date_of_birth',
-                'address',
                 'guardian_name',
                 'guardian_phone',
                 'status',

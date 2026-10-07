@@ -41,16 +41,18 @@ class TeacherAttendanceController extends Controller
             ], 403);
         }
 
-        $students = Student::whereHas('enrollments', function ($query) use ($classId, $sectionId) {
+        $query = Student::whereHas('enrollments', function ($query) use ($classId, $sectionId) {
             $query->where('class_id', $classId)
                 ->where('section_id', $sectionId)
                 ->where('status', 'active');
-        })->get();
+        });
 
-        return response()->json([
-            'message' => 'Students retrieved successfully.',
-            'data' => $students,
-        ]);
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Students retrieved successfully.'
+        );
     }
 
     public function store(Request $request)
@@ -161,9 +163,11 @@ class TeacherAttendanceController extends Controller
             $query->whereDate('date', $request->date);
         }
 
-        return response()->json([
-            'message' => 'Attendance retrieved successfully.',
-            'data' => $query->latest('date')->get(),
-        ]);
+        return $this->paginateResponse(
+            $query->latest('date'),
+            $request,
+            10,
+            'Attendance retrieved successfully.'
+        );
     }
 }

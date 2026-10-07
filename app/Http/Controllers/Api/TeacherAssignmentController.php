@@ -40,13 +40,12 @@ class TeacherAssignmentController extends Controller
             $query->where('subject_id', $request->subject_id);
         }
 
-        $assignments = $query->latest()->get();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Teacher assignments retrieved successfully.',
-            'data' => $assignments,
-        ]);
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Teacher assignments retrieved successfully.'
+        );
     }
 
     public function store(Request $request): JsonResponse

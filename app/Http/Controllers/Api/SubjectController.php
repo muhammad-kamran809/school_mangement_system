@@ -10,15 +10,28 @@ use Illuminate\Validation\Rule;
 
 class SubjectController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $subjects = Subject::latest()->get();
+        $query = Subject::query();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Subjects retrieved successfully.',
-            'data' => $subjects,
-        ]);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Subjects retrieved successfully.'
+        );
     }
 
     public function store(Request $request): JsonResponse

@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class EventController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Event::query();
 
@@ -39,17 +40,17 @@ class EventController extends Controller
                 $q->where(
                     'title',
                     'like',
-                    '%' . $search . '%'
+                    '%'.$search.'%'
                 )
                     ->orWhere(
                         'description',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     )
                     ->orWhere(
                         'location',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     );
             });
         }
@@ -82,15 +83,12 @@ class EventController extends Controller
             );
         }
 
-        $events = $query
-            ->orderBy('event_date')
-            ->orderBy('start_time')
-            ->get();
-
-        return response()->json([
-            'message' => 'Events retrieved successfully.',
-            'data' => $events,
-        ]);
+        return $this->paginateResponse(
+            $query->orderBy('event_date')->orderBy('start_time'),
+            $request,
+            10,
+            'Events retrieved successfully.'
+        );
     }
 
     public function store(Request $request)

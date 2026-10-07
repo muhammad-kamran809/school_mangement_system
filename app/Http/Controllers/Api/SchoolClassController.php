@@ -10,16 +10,25 @@ use Illuminate\Validation\Rule;
 
 class SchoolClassController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $classes = SchoolClass::with('sections')
-            ->latest()
-            ->get();
+        $query = SchoolClass::with('sections');
 
-        return response()->json([
-            'success' => true,
-            'data' => $classes,
-        ]);
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Classes retrieved successfully.'
+        );
     }
 
     public function store(Request $request): JsonResponse

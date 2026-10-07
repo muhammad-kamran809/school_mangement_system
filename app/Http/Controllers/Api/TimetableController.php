@@ -3,23 +3,53 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Section;
 use App\Models\Timetable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class TimetableController extends Controller
 {
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        $timetables = Timetable::with([
+        $query = Timetable::with([
             'academicYear',
             'schoolClass',
             'section',
             'subject',
             'teacher',
-        ])->latest()->get();
+        ]);
 
-        return response()->json($timetables);
+        if ($request->filled('academic_year_id')) {
+            $query->where('academic_year_id', $request->academic_year_id);
+        }
+
+        if ($request->filled('class_id')) {
+            $query->where('class_id', $request->class_id);
+        }
+
+        if ($request->filled('section_id')) {
+            $query->where('section_id', $request->section_id);
+        }
+
+        if ($request->filled('teacher_id')) {
+            $query->where('teacher_id', $request->teacher_id);
+        }
+
+        if ($request->filled('subject_id')) {
+            $query->where('subject_id', $request->subject_id);
+        }
+
+        if ($request->filled('day')) {
+            $query->where('day', $request->day);
+        }
+
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Timetables retrieved successfully.'
+        );
     }
 
     public function store(Request $request)
@@ -75,13 +105,13 @@ class TimetableController extends Controller
         ]);
 
         // Make sure section belongs to selected class
-        $sectionBelongsToClass = \App\Models\Section::where('id', $validated['section_id'])
+        $sectionBelongsToClass = Section::where('id', $validated['section_id'])
             ->where('class_id', $validated['class_id'])
             ->exists();
 
-        if (!$sectionBelongsToClass) {
+        if (! $sectionBelongsToClass) {
             return response()->json([
-                'message' => 'The selected section does not belong to the selected class.'
+                'message' => 'The selected section does not belong to the selected class.',
             ], 422);
         }
 
@@ -95,7 +125,7 @@ class TimetableController extends Controller
 
         if ($duplicate) {
             return response()->json([
-                'message' => 'This timetable slot already exists for the selected class and section.'
+                'message' => 'This timetable slot already exists for the selected class and section.',
             ], 422);
         }
 
@@ -179,13 +209,13 @@ class TimetableController extends Controller
         ]);
 
         // Make sure section belongs to selected class
-        $sectionBelongsToClass = \App\Models\Section::where('id', $validated['section_id'])
+        $sectionBelongsToClass = Section::where('id', $validated['section_id'])
             ->where('class_id', $validated['class_id'])
             ->exists();
 
-        if (!$sectionBelongsToClass) {
+        if (! $sectionBelongsToClass) {
             return response()->json([
-                'message' => 'The selected section does not belong to the selected class.'
+                'message' => 'The selected section does not belong to the selected class.',
             ], 422);
         }
 
@@ -200,7 +230,7 @@ class TimetableController extends Controller
 
         if ($duplicate) {
             return response()->json([
-                'message' => 'This timetable slot already exists for the selected class and section.'
+                'message' => 'This timetable slot already exists for the selected class and section.',
             ], 422);
         }
 
@@ -222,7 +252,7 @@ class TimetableController extends Controller
         $timetable->delete();
 
         return response()->json([
-            'message' => 'Timetable deleted successfully.'
+            'message' => 'Timetable deleted successfully.',
         ]);
     }
 }

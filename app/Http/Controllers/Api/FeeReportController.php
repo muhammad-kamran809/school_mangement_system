@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Fee;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FeeReportController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Fee::query()
             ->with([
@@ -181,20 +182,19 @@ class FeeReportController extends Controller
 
         $totalRemaining = $report->sum('remaining');
 
-        return response()->json([
-            'message' => 'Fee report retrieved successfully.',
+        $summary = [
+            'total_fee' => round($totalFees, 2),
+            'total_paid' => round($totalPaid, 2),
+            'total_remaining' => round($totalRemaining, 2),
+            'total_records' => $report->count(),
+        ];
 
-            'summary' => [
-                'total_fee' => round($totalFees, 2),
-
-                'total_paid' => round($totalPaid, 2),
-
-                'total_remaining' => round($totalRemaining, 2),
-
-                'total_records' => $report->count(),
-            ],
-
-            'data' => $report,
-        ]);
+        return $this->paginateResponse(
+            $report,
+            $request,
+            10,
+            'Fee report retrieved successfully.',
+            ['summary' => $summary]
+        );
     }
 }

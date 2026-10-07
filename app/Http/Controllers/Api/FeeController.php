@@ -4,16 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Fee;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class FeeController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Fee::with([
             'student',
-            'academicYear'
+            'academicYear',
         ]);
 
         if ($request->filled('student_id')) {
@@ -32,14 +33,12 @@ class FeeController extends Controller
             $query->where('status', $request->status);
         }
 
-        $fees = $query
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'message' => 'Fees retrieved successfully.',
-            'data' => $fees
-        ]);
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Fees retrieved successfully.'
+        );
     }
 
     public function store(Request $request)
@@ -47,29 +46,29 @@ class FeeController extends Controller
         $validated = $request->validate([
             'student_id' => [
                 'required',
-                'exists:students,id'
+                'exists:students,id',
             ],
 
             'academic_year_id' => [
                 'required',
-                'exists:academic_years,id'
+                'exists:academic_years,id',
             ],
 
             'fee_type' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
 
             'amount' => [
                 'required',
                 'numeric',
-                'min:0'
+                'min:0',
             ],
 
             'due_date' => [
                 'required',
-                'date'
+                'date',
             ],
 
             'status' => [
@@ -78,13 +77,13 @@ class FeeController extends Controller
                     'pending',
                     'paid',
                     'partial',
-                    'overdue'
-                ])
+                    'overdue',
+                ]),
             ],
 
             'description' => [
                 'nullable',
-                'string'
+                'string',
             ],
         ]);
 
@@ -94,8 +93,8 @@ class FeeController extends Controller
             'message' => 'Fee created successfully.',
             'data' => $fee->load([
                 'student',
-                'academicYear'
-            ])
+                'academicYear',
+            ]),
         ], 201);
     }
 
@@ -104,12 +103,12 @@ class FeeController extends Controller
         $fee->load([
             'student',
             'academicYear',
-            'payments'
+            'payments',
         ]);
 
         return response()->json([
             'message' => 'Fee retrieved successfully.',
-            'data' => $fee
+            'data' => $fee,
         ]);
     }
 
@@ -119,33 +118,33 @@ class FeeController extends Controller
             'student_id' => [
                 'sometimes',
                 'required',
-                'exists:students,id'
+                'exists:students,id',
             ],
 
             'academic_year_id' => [
                 'sometimes',
                 'required',
-                'exists:academic_years,id'
+                'exists:academic_years,id',
             ],
 
             'fee_type' => [
                 'sometimes',
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
 
             'amount' => [
                 'sometimes',
                 'required',
                 'numeric',
-                'min:0'
+                'min:0',
             ],
 
             'due_date' => [
                 'sometimes',
                 'required',
-                'date'
+                'date',
             ],
 
             'status' => [
@@ -155,13 +154,13 @@ class FeeController extends Controller
                     'pending',
                     'paid',
                     'partial',
-                    'overdue'
-                ])
+                    'overdue',
+                ]),
             ],
 
             'description' => [
                 'nullable',
-                'string'
+                'string',
             ],
         ]);
 
@@ -171,8 +170,8 @@ class FeeController extends Controller
             'message' => 'Fee updated successfully.',
             'data' => $fee->load([
                 'student',
-                'academicYear'
-            ])
+                'academicYear',
+            ]),
         ]);
     }
 
@@ -180,14 +179,14 @@ class FeeController extends Controller
     {
         if ($fee->payments()->exists()) {
             return response()->json([
-                'message' => 'This fee cannot be deleted because payments already exist for it.'
+                'message' => 'This fee cannot be deleted because payments already exist for it.',
             ], 422);
         }
 
         $fee->delete();
 
         return response()->json([
-            'message' => 'Fee deleted successfully.'
+            'message' => 'Fee deleted successfully.',
         ]);
     }
 }

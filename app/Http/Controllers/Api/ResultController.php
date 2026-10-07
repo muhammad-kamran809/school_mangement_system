@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Enrollment;
 use App\Models\Exam;
 use App\Models\Result;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ResultController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Result::with([
             'exam',
@@ -29,8 +31,11 @@ class ResultController extends Controller
             $query->where('subject_id', $request->subject_id);
         }
 
-        return response()->json(
-            $query->latest()->get()
+        return $this->paginateResponse(
+            $query->latest(),
+            $request,
+            10,
+            'Results retrieved successfully.'
         );
     }
 
@@ -79,7 +84,7 @@ class ResultController extends Controller
         // Marks cannot be greater than total marks
         if ($validated['marks'] > $validated['total_marks']) {
             return response()->json([
-                'message' => 'Marks obtained cannot be greater than total marks.'
+                'message' => 'Marks obtained cannot be greater than total marks.',
             ], 422);
         }
 
@@ -100,7 +105,7 @@ class ResultController extends Controller
 
         if ($alreadyExists) {
             return response()->json([
-                'message' => 'A result already exists for this student, exam, and subject.'
+                'message' => 'A result already exists for this student, exam, and subject.',
             ], 422);
         }
 
@@ -108,7 +113,7 @@ class ResultController extends Controller
         $exam = Exam::find($validated['exam_id']);
 
         // Check student enrollment in exam class
-        $studentEnrolled = \App\Models\Enrollment::where(
+        $studentEnrolled = Enrollment::where(
             'student_id',
             $validated['student_id']
         )
@@ -122,9 +127,9 @@ class ResultController extends Controller
             )
             ->exists();
 
-        if (!$studentEnrolled) {
+        if (! $studentEnrolled) {
             return response()->json([
-                'message' => 'The selected student is not enrolled in the class and academic year of this exam.'
+                'message' => 'The selected student is not enrolled in the class and academic year of this exam.',
             ], 422);
         }
 
@@ -195,7 +200,7 @@ class ResultController extends Controller
 
         if ($validated['marks'] > $validated['total_marks']) {
             return response()->json([
-                'message' => 'Marks obtained cannot be greater than total marks.'
+                'message' => 'Marks obtained cannot be greater than total marks.',
             ], 422);
         }
 
@@ -220,13 +225,13 @@ class ResultController extends Controller
 
         if ($alreadyExists) {
             return response()->json([
-                'message' => 'A result already exists for this student, exam, and subject.'
+                'message' => 'A result already exists for this student, exam, and subject.',
             ], 422);
         }
 
         $exam = Exam::find($validated['exam_id']);
 
-        $studentEnrolled = \App\Models\Enrollment::where(
+        $studentEnrolled = Enrollment::where(
             'student_id',
             $validated['student_id']
         )
@@ -240,9 +245,9 @@ class ResultController extends Controller
             )
             ->exists();
 
-        if (!$studentEnrolled) {
+        if (! $studentEnrolled) {
             return response()->json([
-                'message' => 'The selected student is not enrolled in the class and academic year of this exam.'
+                'message' => 'The selected student is not enrolled in the class and academic year of this exam.',
             ], 422);
         }
 
@@ -262,7 +267,7 @@ class ResultController extends Controller
         $result->delete();
 
         return response()->json([
-            'message' => 'Result deleted successfully.'
+            'message' => 'Result deleted successfully.',
         ]);
     }
 }
