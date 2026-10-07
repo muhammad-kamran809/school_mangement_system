@@ -36,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // dashboard api
     Route::get('dashboard', [DashboardController::class, 'index'])
-        ->middleware('role:Admin');
+        ->middleware('role:Admin|Staff');
 
     Route::get('students', [
         StudentController::class,
